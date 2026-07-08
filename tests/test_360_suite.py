@@ -1,7 +1,12 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.persistence.database import engine, Base
+from app.persistence.seed import seed_rules
 import uuid
+
+Base.metadata.create_all(bind=engine)
+seed_rules()
 
 client = TestClient(app)
 HEADERS = {"X-API-Key": "your_secret_api_key_here"}

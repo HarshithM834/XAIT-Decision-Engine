@@ -4,7 +4,9 @@ from app.schemas.payload import NormalizedPayload
 from app.schemas.decision import DecisionResponse, TriggeredRuleSummary, JobExecutionSummary
 from app.schemas.run import RestartRequest
 from app.services.run_manager import RunManager
-from app.rules.evaluator import RuleEvaluator, load_rules
+from app.rules.evaluator import RuleEvaluator
+from app.rules.models import RuleDefinition, RuleCondition, RuleOutcome, RuleAction
+from app.persistence.models import Rule as DBRule
 from app.jobs.executor import JobExecutor
 from app.core.exceptions import EngineException
 from app.core.logging import logger
@@ -13,8 +15,28 @@ class DecisionEngine:
     def __init__(self, db: Session):
         self.db = db
         self.run_manager = RunManager(db)
-        self.rules_config = load_rules()
-        self.evaluator = RuleEvaluator(self.rules_config)
+        
+        # Load rules from DB
+        db_rules = self.db.query(DBRule).all()
+        pydantic_rules = []
+        for r in db_rules:
+            # Map SQLAlchemy models to Pydantic models for evaluator
+            conditions = [RuleCondition(field=c.field, operator=c.operator, value=c.value) for c in r.conditions]
+            actions = [RuleAction(type=a.type) for a in r.actions]
+            outcome = RuleOutcome(decision_effect=r.decision_effect, actions=actions, rationale_template=r.rationale_template)
+            p_rule = RuleDefinition(
+                rule_id=r.rule_id,
+                name=r.name,
+                description=r.description,
+                enabled=r.enabled,
+                priority=r.priority,
+                condition_group=r.condition_group,
+                conditions=conditions,
+                outcome=outcome
+            )
+            pydantic_rules.append(p_rule)
+
+        self.evaluator = RuleEvaluator(pydantic_rules)
         self.job_executor = JobExecutor()
 
     def process_evaluate(self, payload: NormalizedPayload, force: bool = False) -> DecisionResponse:

@@ -28,8 +28,16 @@ app.add_middleware(
 )
 
 @app.on_event("startup")
-async def startup_event():
-    logger.info("Application starting up...", extra={"env": settings.ENVIRONMENT})
+def startup_event():
+    from app.persistence.database import engine, Base
+    from app.persistence.seed import seed_rules
+    # Create tables if they don't exist (useful for tests/dev without migrations)
+    # But Alembic is preferred. We still run this just in case.
+    Base.metadata.create_all(bind=engine)
+    logger.info("Application starting up, database connected.")
+    
+    # Seed the initial database rules from YAML
+    seed_rules()
 
 @app.on_event("shutdown")
 async def shutdown_event():

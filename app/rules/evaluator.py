@@ -1,14 +1,6 @@
-import yaml
-import operator
 from typing import Dict, Any, List, Tuple
-from app.rules.models import RulesConfig, RuleDefinition
+from app.rules.models import RuleDefinition
 from app.core.logging import logger
-from app.core.config import settings
-
-def load_rules(file_path: str = settings.RULES_CONFIG_PATH) -> RulesConfig:
-    with open(file_path, 'r') as f:
-        data = yaml.safe_load(f)
-    return RulesConfig(**data)
 
 def get_field_value(payload: Dict[str, Any], path: str) -> Any:
     """Gets a value from a nested dictionary using a dotted path."""
@@ -22,8 +14,8 @@ def get_field_value(payload: Dict[str, Any], path: str) -> Any:
     return val
 
 class RuleEvaluator:
-    def __init__(self, rules_config: RulesConfig):
-        self.rules = sorted([r for r in rules_config.rules if r.enabled], key=lambda x: x.priority, reverse=True)
+    def __init__(self, rules: List[RuleDefinition]):
+        self.rules = sorted([r for r in rules if r.enabled], key=lambda x: x.priority, reverse=True)
 
     def evaluate(self, payload: Dict[str, Any]) -> List[RuleDefinition]:
         triggered = []

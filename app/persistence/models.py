@@ -77,3 +77,39 @@ class JobExecution(Base):
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
     
     run = relationship("Run", back_populates="job_executions")
+
+class Rule(Base):
+    __tablename__ = "rules"
+
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
+    rule_id = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    enabled = Column(Boolean, default=True, nullable=False)
+    priority = Column(Float, default=0.0, nullable=False)
+    condition_group = Column(String, default="all", nullable=False)
+    decision_effect = Column(String, nullable=False)
+    rationale_template = Column(String, nullable=False)
+
+    conditions = relationship("RuleCondition", back_populates="rule", cascade="all, delete-orphan")
+    actions = relationship("RuleAction", back_populates="rule", cascade="all, delete-orphan")
+
+class RuleCondition(Base):
+    __tablename__ = "rule_conditions"
+
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
+    rule_id = Column(String, ForeignKey("rules.id"), nullable=False)
+    field = Column(String, nullable=False)
+    operator = Column(String, nullable=False)
+    value = Column(JSON, nullable=True) # JSON to handle strings, numbers, arrays
+
+    rule = relationship("Rule", back_populates="conditions")
+
+class RuleAction(Base):
+    __tablename__ = "rule_actions"
+
+    id = Column(String, primary_key=True, index=True, default=generate_uuid)
+    rule_id = Column(String, ForeignKey("rules.id"), nullable=False)
+    type = Column(String, nullable=False)
+
+    rule = relationship("Rule", back_populates="actions")
