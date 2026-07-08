@@ -1,0 +1,32 @@
+mappings:
+  - source_pattern: "messy_.*"
+    fields:
+      - target: "record_id"
+        json_path: "$.metadata.OpportunityID"
+      - target: "source"
+        json_path: "$.meta.SourceName"
+      - target: "captured_at"
+        json_path: "$.meta.Timestamp"
+      
+      - target: "financials.total_price"
+        json_path: "$.financial_data.OrderValue"
+        type_cast: "float"
+      - target: "financials.total_cost"
+        json_path: "$.financial_data.Cost"
+        type_cast: "float"
+      - target: "financials.margin"
+        json_path: "$.financial_data.MarginPercentage"
+        type_cast: "float"
+        
+      - target: "documents.so_summary_found"
+        json_path: "$.docs.HasSummary"
+        type_cast: "boolean"
+      - target: "documents.sow_found"
+        json_path: "$.docs.HasSOW"
+        type_cast: "boolean"
+      
+      - target: "extracted_fields.status"
+        json_path: "$.status"
+      
+      - target: "metadata.payload_version"
+        json_path: "$.meta.Version"

@@ -1,0 +1,99 @@
+rules:
+  - rule_id: margin_below_threshold
+    name: Margin below threshold
+    description: Flag opportunities with margin below 30%
+    enabled: true
+    priority: 100
+    condition_group: all
+    conditions:
+      - field: financials.margin
+        operator: exists
+      - field: financials.margin
+        operator: less_than
+        value: 0.30
+    outcome:
+      decision_effect: require_additional_approval
+      actions:
+        - type: send_email
+      rationale_template: "Additional approval is required because margin is below the 30% threshold."
+
+  - rule_id: high_total_price
+    name: High total price
+    description: Flag opportunities with total price >= 250,000
+    enabled: true
+    priority: 90
+    condition_group: all
+    conditions:
+      - field: financials.total_price
+        operator: exists
+      - field: financials.total_price
+        operator: greater_or_equal
+        value: 250000
+    outcome:
+      decision_effect: require_additional_approval
+      actions:
+        - type: send_email
+      rationale_template: "Additional approval is required because total price is 250,000 or greater."
+
+  - rule_id: missing_so_summary
+    name: Missing SO Summary
+    description: Flag if SO Summary document was not found
+    enabled: true
+    priority: 80
+    condition_group: all
+    conditions:
+      - field: documents.so_summary_found
+        operator: boolean_false
+    outcome:
+      decision_effect: flag_for_review
+      actions:
+        - type: none
+      rationale_template: "Flagged for review because the SO Summary document is missing."
+
+  - rule_id: source_mismatch
+    name: Source Mismatch Detected
+    description: Flag if there is a mismatch across sources
+    enabled: true
+    priority: 85
+    condition_group: all
+    conditions:
+      - field: documents.source_mismatch_detected
+        operator: boolean_true
+    outcome:
+      decision_effect: flag_for_review
+      actions:
+        - type: none
+      rationale_template: "Flagged for review due to a detected source mismatch."
+
+  - rule_id: status_not_eligible
+    name: Status not eligible
+    description: No action if status is not submitted_to_rap or pending_review
+    enabled: true
+    priority: 200
+    condition_group: all
+    conditions:
+      - field: extracted_fields.status
+        operator: not_in
+        value: ["submitted_to_rap", "pending_review"]
+    outcome:
+      decision_effect: no_additional_approval
+      actions:
+        - type: none
+      rationale_template: "No additional approval needed because status is not eligible for review."
+
+  - rule_id: missing_critical_financials
+    name: Missing Critical Financials
+    description: Fail validation if total_price or margin is missing
+    enabled: true
+    priority: 500
+    condition_group: any
+    conditions:
+      - field: financials.total_price
+        operator: not_exists
+      - field: financials.margin
+        operator: not_exists
+    outcome:
+      decision_effect: fail_validation
+      actions:
+        - type: none
+      rationale_template: "Validation failed because critical financial data (total price or margin) is missing."

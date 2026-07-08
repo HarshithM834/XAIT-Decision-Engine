@@ -1,0 +1,34 @@
+{
+  "record_id": "OPP-12345",
+  "source": "SO Summary Extraction",
+  "captured_at": "2026-07-07T12:00:00Z",
+  "financials": {
+    "total_price": 300000.0,
+    "total_cost": 200000.0,
+    "margin": 0.33
+  },
+  "documents": {
+    "so_summary_found": true,
+    "sow_found": false,
+    "latest_document_timestamp": "2026-07-07T10:00:00Z",
+    "source_mismatch_detected": false
+  },
+  "extracted_fields": {
+    "status": "pending_review",
+    "approval_threshold": "Tier 2",
+    "approval_type": "Standard",
+    "customer_name": "Acme Corp",
+    "region": "North America",
+    "business_unit": "Enterprise"
+  },
+  "workflow_context": {
+    "requested_start_stage": null,
+    "restart_allowed": true,
+    "initiated_by": "automation_bot"
+  },
+  "metadata": {
+    "upstream_system": "Extractor-v2",
+    "payload_version": "1.0",
+    "notes": "Initial test payload"
+  }
+}

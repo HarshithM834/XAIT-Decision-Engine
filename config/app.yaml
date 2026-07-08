@@ -1,0 +1,6 @@
+app_name: XAIT Approval Decision Engine
+version: 1.0.0
+features:
+  allow_negative_margin: false
+  allow_negative_price: false
+  incoming_margin_format: fraction # can be fraction (0.28) or percent (28)

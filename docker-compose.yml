@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./config:/app/config
+      - ./tests:/app/tests
+      - data_volume:/app/data
+    env_file:
+      - .env
+
+volumes:
+  data_volume:

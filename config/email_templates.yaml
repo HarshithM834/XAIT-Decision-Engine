@@ -1,0 +1,4 @@
+templates:
+  - id: default_approval_request
+    subject: "Approval Required: {{ record_id }}"
+    body: "The record {{ record_id }} requires additional approval.\n\nRationale:\n{{ rationale }}"
