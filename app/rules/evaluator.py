@@ -71,6 +71,12 @@ class RuleEvaluator:
             return bool(field_val) is True
         if op == "boolean_false":
             return bool(field_val) is False
+        if op == "regex_match":
+            import re
+            try:
+                return bool(re.search(str(target_val), str(field_val)))
+            except re.error:
+                return False
 
         return False
 

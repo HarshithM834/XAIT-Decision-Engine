@@ -113,3 +113,14 @@ class RuleAction(Base):
     type = Column(String, nullable=False)
 
     rule = relationship("Rule", back_populates="actions")
+
+class RuleAuditLog(Base):
+    __tablename__ = "rule_audit_logs"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    rule_id = Column(String, index=True, nullable=False)
+    action = Column(String, nullable=False) # e.g. CREATE, UPDATE, DELETE
+    changed_by = Column(String, nullable=False, default="system")
+    old_state = Column(JSON, nullable=True)
+    new_state = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)

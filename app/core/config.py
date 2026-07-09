@@ -10,6 +10,9 @@ class Settings(BaseSettings):
 
     # Security
     API_KEY: str
+    AZURE_TENANT_ID: str = ""
+    AZURE_CLIENT_ID: str = ""
+    AZURE_APP_ID_URI: str = ""
 
     # Database
     DATABASE_URL: str = "sqlite:///./data/decision_engine.db"

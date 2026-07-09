@@ -57,3 +57,22 @@ def test_create_read_update_delete_rule():
     resp = client.get("/v1/rules", headers=HEADERS)
     rules = resp.json()
     assert not any(r["rule_id"] == "test_crud_rule" for r in rules)
+
+def test_audit_logs_recorded():
+    # To check audit logs, we can inspect the database directly
+    from app.persistence.database import SessionLocal
+    from app.persistence.models import RuleAuditLog
+    
+    db = SessionLocal()
+    # Find all logs for 'test_crud_rule'
+    logs = db.query(RuleAuditLog).filter(RuleAuditLog.rule_id == "test_crud_rule").order_by(RuleAuditLog.created_at).all()
+    
+    # Expect 3 logs: CREATE, UPDATE, DELETE
+    assert len(logs) == 3
+    assert logs[0].action == "CREATE"
+    assert logs[0].new_state["rule_id"] == "test_crud_rule"
+    assert logs[1].action == "UPDATE"
+    assert logs[1].new_state["name"] == "Updated Name"
+    assert logs[2].action == "DELETE"
+    assert logs[2].old_state["name"] == "Updated Name"
+    db.close()

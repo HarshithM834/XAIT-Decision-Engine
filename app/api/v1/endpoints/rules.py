@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.persistence.database import get_db
-from app.persistence.models import Rule as DBRule, RuleCondition, RuleAction
+from app.persistence.models import Rule as DBRule, RuleCondition, RuleAction, RuleAuditLog
 from app.rules.models import RuleDefinition
 from app.core.security import get_api_key
 
@@ -56,6 +56,9 @@ async def create_rule(rule: RuleDefinition, db: Session = Depends(get_db), api_k
     for act in rule.outcome.actions:
         db.add(RuleAction(rule_id=db_rule.id, type=act.type))
 
+    # Audit Log
+    db.add(RuleAuditLog(rule_id=rule.rule_id, action="CREATE", new_state=rule.dict()))
+
     db.commit()
     return _map_to_pydantic(db_rule)
 
@@ -66,6 +69,8 @@ async def update_rule(rule_id: str, rule: RuleDefinition, db: Session = Depends(
     if not db_rule:
         raise HTTPException(status_code=404, detail="Rule not found.")
     
+    old_state = _map_to_pydantic(db_rule)
+
     # Update primitive fields
     db_rule.name = rule.name
     db_rule.description = rule.description
@@ -85,6 +90,9 @@ async def update_rule(rule_id: str, rule: RuleDefinition, db: Session = Depends(
     for act in rule.outcome.actions:
         db.add(RuleAction(rule_id=db_rule.id, type=act.type))
 
+    # Audit Log
+    db.add(RuleAuditLog(rule_id=rule_id, action="UPDATE", old_state=old_state, new_state=rule.dict()))
+
     db.commit()
     return _map_to_pydantic(db_rule)
 
@@ -95,6 +103,11 @@ async def delete_rule(rule_id: str, db: Session = Depends(get_db), api_key: str 
     if not db_rule:
         raise HTTPException(status_code=404, detail="Rule not found.")
     
+    old_state = _map_to_pydantic(db_rule)
     db.delete(db_rule)
+    
+    # Audit Log
+    db.add(RuleAuditLog(rule_id=rule_id, action="DELETE", old_state=old_state))
+
     db.commit()
     return {"status": "success", "message": f"Rule {rule_id} deleted."}

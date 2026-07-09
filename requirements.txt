@@ -7,6 +7,7 @@ SQLAlchemy==2.0.25
 alembic==1.13.1
 httpx==0.26.0
 jsonpath-ng==1.6.1
+fastapi-azure-auth>=4.0.0
 
 # Testing
 pytest==8.0.0
