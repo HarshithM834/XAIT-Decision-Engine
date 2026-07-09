@@ -10,6 +10,7 @@ class MappingField(BaseModel):
     target: str
     json_path: str
     type_cast: Optional[str] = None
+    default_value: Optional[Any] = None
 
 class MappingRule(BaseModel):
     source_pattern: str
@@ -37,8 +38,21 @@ class PayloadMapper:
             
         try:
             if type_cast == "float":
+                if isinstance(value, str):
+                    # Remove currency symbols and commas (e.g. "$250,000.00" -> "250000.00")
+                    clean_str = re.sub(r'[^\d.-]', '', value)
+                    return float(clean_str) if clean_str else 0.0
+                return float(value)
+            elif type_cast == "float_percent":
+                if isinstance(value, str):
+                    # Remove % signs and cast, then divide by 100 (e.g. "28.5%" -> 0.285)
+                    clean_str = re.sub(r'[^\d.-]', '', value)
+                    return float(clean_str) / 100.0 if clean_str else 0.0
                 return float(value)
             elif type_cast == "integer":
+                if isinstance(value, str):
+                    clean_str = re.sub(r'[^\d.-]', '', value)
+                    return int(float(clean_str)) if clean_str else 0
                 return int(value)
             elif type_cast == "boolean":
                 if isinstance(value, str):
@@ -95,6 +109,8 @@ class PayloadMapper:
                     val = match[0].value
                     val = self._cast_value(val, field.type_cast)
                     self._set_nested_value(mapped_payload, field.target, val)
+                elif field.default_value is not None:
+                    self._set_nested_value(mapped_payload, field.target, field.default_value)
             except Exception as e:
                 logger.error(f"Error extracting JSONPath {field.json_path}: {e}")
 

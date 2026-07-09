@@ -152,3 +152,31 @@ def test_sql_injection_attempt():
     resp = client.post("/v1/decisions/evaluate", json=payload, headers=HEADERS)
     assert resp.status_code == 200
     assert resp.json()["record_id"] == "'; DROP TABLE runs; --"
+
+# --- Angle 6: New Scraper (XaitCPQ) ---
+
+def test_xaitcpq_scraper_payload():
+    """Test mapping and evaluating the flat JSON from the XaitCPQ scraper."""
+    payload = {
+        "scope_number_revision": "1001124404384.2",
+        "opportunity_name": "Contoso Healthcare LLC Quote",
+        "account": "1a2b3c4d-5e6f-7a80-9b1c-2d3e4f5a6b7c",
+        "presales_opportunity_repository": "https://presidio.sharepoint.com/...",
+        "net_sell_price": "$250,000.00",
+        "us_margin_pct": "28.5%",
+        "india_margin_pct": "0.0%",
+        "sub_margin_pct": "0.0%",
+        "total_margin_pct": "28.5%",
+        "us_margin_calculated": "$70,000.00",
+        "india_margin_calculated": "$0.00",
+        "subcontract_margin_calculated": "$0.00"
+    }
+
+    # Should trigger 'high_total_price' (250,000) and 'margin_below_threshold' (0.285 < 0.30)
+    resp = client.post("/v1/decisions/evaluate", json=payload, headers=HEADERS)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["final_decision"] == "additional_approval_required"
+    triggered_names = [r["name"] for r in data["triggered_rules"]]
+    assert "Margin Check" in triggered_names or "Margin below threshold" in triggered_names
+    assert "High total price" in triggered_names

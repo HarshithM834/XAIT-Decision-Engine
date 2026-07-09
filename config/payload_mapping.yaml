@@ -30,3 +30,27 @@ mappings:
       
       - target: "metadata.payload_version"
         json_path: "$.meta.Version"
+
+  - source_pattern: "^$"
+    fields:
+      - target: "record_id"
+        json_path: "$.scope_number_revision"
+      - target: "source"
+        json_path: "$.fake_path_to_force_default"
+        default_value: "xaitcpq_scraper"
+      - target: "captured_at"
+        json_path: "$.fake_path"
+        default_value: "2026-07-09T00:00:00Z"
+      
+      - target: "extracted_fields.customer_name"
+        json_path: "$.opportunity_name"
+      - target: "extracted_fields.status"
+        json_path: "$.status"
+        default_value: "pending_review"
+        
+      - target: "financials.total_price"
+        json_path: "$.net_sell_price"
+        type_cast: "float"
+      - target: "financials.margin"
+        json_path: "$.total_margin_pct"
+        type_cast: "float_percent"
